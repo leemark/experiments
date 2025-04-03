@@ -2,6 +2,21 @@
 
 This document outlines step-by-step plans for implementing each of the ten creative coding projects with p5.js.
 
+## Project Status Overview
+
+| Project | Status | Completion |
+|---------|--------|------------|
+| 1. Generative Cityscape | ✅ Completed | 100% |
+| 2. Interactive Kaleidoscope | ✅ Completed | 100% |
+| 3. Sound-Responsive Visualizer | 🔜 Coming Soon | 0% |
+| 4. Fractal Forest | ✅ Completed | 100% |
+| 5. Particle Swarm Art | 🔜 Coming Soon | 0% |
+| 6. Digital Watercolor Painting | 🔜 Coming Soon | 0% |
+| 7. 3D Geometric Sculpture | 🔜 Coming Soon | 0% |
+| 8. Algorithmic Portraits | 🔜 Coming Soon | 0% |
+| 9. Virtual Garden | 🔜 Coming Soon | 0% |
+| 10. Stellar Constellations | 🔜 Coming Soon | 0% |
+
 ## 1. Generative Cityscape
 
 ### Project Overview
