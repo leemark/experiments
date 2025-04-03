@@ -136,18 +136,19 @@ function addBuilding(x, heightFactor) {
   // Create a new building
   let building = {
     x: x,
-    width: random(20, 80),
+    width: random(30, 80), // Slightly increased min width for roofs
     height: 0,
     targetHeight: random(50, 200) * heightFactor,
     growSpeed: random(0.5, 2),
     color: color(
-      random(20, 80),
-      random(20, 80),
-      random(20, 100)
+      random(30, 150), // Allow slightly lighter reds/grays
+      random(30, 150), // Allow slightly lighter greens/grays
+      random(30, 180)  // Allow slightly lighter/bluer tones
     ),
     windows: [],
     windowRows: floor(random(5, 15)),
-    windowCols: floor(random(2, 6))
+    windowCols: floor(random(2, 6)),
+    roofType: random() < 0.4 ? 'peaked' : 'flat' // Add roof type (40% chance of peaked)
   };
   
   // Initialize windows (they'll be drawn when the building is tall enough)
@@ -165,7 +166,7 @@ function addBuilding(x, heightFactor) {
 }
 
 function drawBuildings() {
-  // Sort buildings by x position for proper layering
+  // Sort buildings by x position for proper layering (simple sort, no real perspective yet)
   buildings.sort((a, b) => a.x - b.x);
   
   // Draw each building
@@ -173,29 +174,54 @@ function drawBuildings() {
     // Gradually grow building to target height
     if (building.height < building.targetHeight) {
       building.height += building.growSpeed;
+      // Cap height at targetHeight
+      if (building.height > building.targetHeight) {
+          building.height = building.targetHeight;
+      }
     }
     
+    // Calculate building base coordinates
+    let buildingX = building.x - building.width/2;
+    let buildingY = groundY - building.height;
+    let buildingW = building.width;
+    let buildingH = building.height;
+
     // Building base
     fill(building.color);
     noStroke();
-    rect(building.x - building.width/2, groundY - building.height, 
-         building.width, building.height);
+    rect(buildingX, buildingY, buildingW, buildingH);
+
+    // Draw roof if applicable
+    if (building.roofType === 'peaked' && building.height > 10) { // Only draw roof if building has some height
+        let roofHeight = building.width * 0.4; // Adjust multiplier for roof steepness
+        fill(building.color); // Match base color for now
+        noStroke();
+        triangle(
+            buildingX, buildingY,                         // Left base corner
+            buildingX + buildingW, buildingY,             // Right base corner
+            buildingX + buildingW / 2, buildingY - roofHeight // Peak
+        );
+        // Adjust buildingY for window placement to be below the roof base
+        buildingY += 0; // No change needed if windows start from original buildingY
+    }
     
     // Draw windows if building is tall enough
     if (building.height > 20) {
       // Window dimensions
+      let windowGridHeight = building.roofType === 'peaked' ? building.height : building.height; // Windows only on rectangular part for peaked roofs
+      let windowHeight = windowGridHeight / (building.windowRows + 1);
       let windowWidth = building.width / (building.windowCols + 1);
-      let windowHeight = building.height / (building.windowRows + 1);
       
       // Only draw windows up to the current height
-      let visibleRows = floor(building.height / (building.height / (building.windowRows + 1)));
-      
+      let visibleRows = floor(building.height / windowHeight) -1 ; // Recalculate based on windowHeight
+
       for (let row = 0; row < min(visibleRows, building.windowRows); row++) {
         for (let col = 0; col < building.windowCols; col++) {
           // Window position
-          let windowX = building.x - building.width/2 + (col + 1) * (building.width / (building.windowCols + 1));
-          let windowY = groundY - building.height + (row + 1) * (building.height / (building.windowRows + 1));
-          
+          let winX = buildingX + (col + 1) * windowWidth;
+          // Adjust Y start position based on roof type (windows start below peak base)
+          let winY = (groundY - building.height) + (row + 1) * windowHeight;
+
           // Update window lighting
           updateWindowLighting(building.windows[row][col]);
           
@@ -216,7 +242,7 @@ function drawBuildings() {
           }
           
           fill(windowColor);
-          rect(windowX - windowWidth/2, windowY - windowHeight/2, 
+          rect(winX - windowWidth/2, winY - windowHeight/2, 
                windowWidth * 0.8, windowHeight * 0.8);
         }
       }
