@@ -19,18 +19,23 @@ let useParticles = true; // Toggle for particle effect
 let trailEffect = true; // Toggle for trail effect
 let maxTrailLength = 20; // Maximum length of trail
 let trail = []; // Array to hold trail points
-let blendMode = BLEND; // Default blend mode
-let blendModes = [BLEND, ADD, MULTIPLY, SCREEN, OVERLAY, SOFT_LIGHT, HARD_LIGHT];
-let blendModeNames = ["Normal", "Add", "Multiply", "Screen", "Overlay", "Soft Light", "Hard Light"];
+// Define variables for blend modes and drawing styles - will be initialized in setup
 let currentBlendMode = 0;
 let drawingStyle = 0; // 0: lines, 1: curves, 2: connected dots
 let drawingStyleNames = ["Lines", "Curves", "Dots"];
 let useFade = true; // Fade effect for the background
+// We'll define these in setup since they need p5 constants
+let blendModes;
+let blendModeNames;
 
 function setup() {
   // Create canvas and set it in the container
   let canvas = createCanvas(800, 800);
   canvas.parent('sketch-container');
+  
+  // Initialize blend mode arrays after p5 is ready
+  blendModes = [BLEND, ADD, MULTIPLY, SCREEN, OVERLAY, SOFT_LIGHT, HARD_LIGHT];
+  blendModeNames = ["Normal", "Add", "Multiply", "Screen", "Overlay", "Soft Light", "Hard Light"];
   
   // Calculate the angle for symmetry
   angle = 360 / symmetry;
