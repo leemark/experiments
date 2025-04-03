@@ -157,31 +157,73 @@ function drawStars() {
 }
 
 function drawCelestialBody() {
-  // Calculate base position based on time of day
-  // We can also apply a slight parallax to the sun/moon to make them feel distant
-  let celestialParallaxFactor = 0.05; // Very slow parallax for sun/moon
-  let baseCelestialX = width * (timeOfDay % 1);
-  let celestialX = (baseCelestialX + parallaxOffset * celestialParallaxFactor) % width;
-   if (celestialX < 0) {
-          celestialX += width;
-      }
-  let celestialY = map(sin(PI * timeOfDay), -1, 1, groundY - 50, 50);
-  
-  // Determine if it's sun or moon
-  if (timeOfDay > 0.25 && timeOfDay < 0.75) {
-    // Sun
+  let sunrise = 0.25;
+  let sunset = 0.75;
+  let noon = 0.5;
+  let midnight = 0; // or 1
+
+  let celestialParallaxFactor = 0.05; // Keep the slight parallax
+
+  // --- Sun Calculation ---
+  if (timeOfDay > sunrise && timeOfDay < sunset) {
+    // Calculate sun's progress through the day (0 at sunrise, 1 at sunset)
+    let dayProgress = map(timeOfDay, sunrise, sunset, 0, 1);
+    
+    // Calculate X position based on day progress, applying parallax
+    let baseSunX = dayProgress * width;
+    let sunX = (baseSunX + parallaxOffset * celestialParallaxFactor) % width;
+     if (sunX < 0) { sunX += width; }
+
+    // Calculate Y position using sine wave peaking at noon
+    // sin(0) = 0, sin(PI) = 0, sin(PI/2) = 1
+    let sunY = map(sin(dayProgress * PI), 0, 1, groundY - 50, 50); // Rises from/sets to horizon, peaks high
+
+    // Draw Sun
     let sunColor = color(255, 255, 200);
     fill(sunColor);
-    circle(celestialX, celestialY, 60);
-  } else {
-    // Moon
-    fill(240, 240, 220);
-    circle(celestialX, celestialY, 40);
-    
-    // Moon crater
-    fill(220, 220, 200);
-    circle(celestialX - 10, celestialY - 5, 15);
-    circle(celestialX + 7, celestialY + 10, 10);
+    noStroke();
+    circle(sunX, sunY, 60);
+  }
+
+  // --- Moon Calculation ---
+  // Calculate moon's base position across the full cycle (similar path to before)
+  // We can slightly offset its path from the sun's for visual difference
+  let moonTimeOffset = 0.5; // Moon is opposite the sun (adjust as needed)
+  let moonTime = (timeOfDay + moonTimeOffset) % 1;
+  let baseMoonX = moonTime * width;
+  let moonX = (baseMoonX + parallaxOffset * celestialParallaxFactor) % width;
+  if (moonX < 0) { moonX += width; }
+  // Moon path can be lower in the sky than the sun's peak
+  let moonY = map(sin(moonTime * PI), 0, 1, groundY - 70, 80); 
+
+  // Calculate Moon Alpha based on darkness (fades in/out during twilight)
+  let moonAlpha = 0;
+  let fadeDuration = 0.1; // How long dawn/dusk transition lasts for moon fade
+
+  if (timeOfDay < sunrise - fadeDuration || timeOfDay > sunset + fadeDuration) {
+      // Deep night - full alpha
+      moonAlpha = 240; 
+  } else if (timeOfDay > sunrise - fadeDuration && timeOfDay < sunrise) {
+      // Fading out at dawn
+      moonAlpha = map(timeOfDay, sunrise - fadeDuration, sunrise, 240, 0);
+  } else if (timeOfDay > sunset && timeOfDay < sunset + fadeDuration) {
+      // Fading in at dusk
+      moonAlpha = map(timeOfDay, sunset, sunset + fadeDuration, 0, 240);
+  }
+   // Clamp alpha just in case
+  moonAlpha = constrain(moonAlpha, 0, 240);
+
+  // Draw Moon (only if alpha is > 0)
+  if (moonAlpha > 0) {
+      noStroke();
+      // Moon body
+      fill(240, 240, 220, moonAlpha);
+      circle(moonX, moonY, 40);
+      
+      // Moon craters (use same alpha)
+      fill(220, 220, 200, moonAlpha);
+      circle(moonX - 10, moonY - 5, 15);
+      circle(moonX + 7, moonY + 10, 10);
   }
 }
 
