@@ -189,19 +189,20 @@ function addBuilding(x, heightFactor) {
   // Create a new building
   let building = {
     x: x,
-    width: random(30, 80), // Slightly increased min width for roofs
+    width: random(30, 80),
     height: 0,
     targetHeight: random(50, 200) * heightFactor,
     growSpeed: random(0.5, 2),
     color: color(
-      random(30, 150), // Allow slightly lighter reds/grays
-      random(30, 150), // Allow slightly lighter greens/grays
-      random(30, 180)  // Allow slightly lighter/bluer tones
+      random(30, 150), 
+      random(30, 150), 
+      random(30, 180)  
     ),
     windows: [],
     windowRows: floor(random(5, 15)),
     windowCols: floor(random(2, 6)),
-    roofType: random() < 0.4 ? 'peaked' : 'flat' // Add roof type (40% chance of peaked)
+    roofType: random() < 0.4 ? 'peaked' : 'flat',
+    depth: random(0.1, 1) // Add depth property (0.1=far, 1=close)
   };
   
   // Initialize windows (they'll be drawn when the building is tall enough)
@@ -219,8 +220,8 @@ function addBuilding(x, heightFactor) {
 }
 
 function drawBuildings() {
-  // Sort buildings by x position for proper layering (simple sort, no real perspective yet)
-  buildings.sort((a, b) => a.x - b.x);
+  // Sort buildings by depth for atmospheric perspective (farther buildings drawn first)
+  buildings.sort((a, b) => a.depth - b.depth);
   
   // Draw each building
   for (let building of buildings) {
@@ -239,62 +240,66 @@ function drawBuildings() {
     let buildingW = building.width;
     let buildingH = building.height;
 
-    // Building base
-    fill(building.color);
-    noStroke();
+    // --- Atmospheric Perspective Calculation ---
+    // Closer buildings (depth near 1) have less fog effect
+    // Farther buildings (depth near 0.1) have more fog effect
+    let fogAmount = map(building.depth, 0.1, 1, 0.6, 0); // 0.6 = 60% fog for farthest, 0% for closest
+    let baseColor = building.color;
+    let foggedColor = lerpColor(baseColor, skyColor, fogAmount); 
+    // --- End Atmospheric Perspective ---
+
+    // Building base - use fogged color
+    fill(foggedColor); 
+    noStroke(); // Apply noStroke before rect
     rect(buildingX, buildingY, buildingW, buildingH);
 
-    // Draw roof if applicable
-    if (building.roofType === 'peaked' && building.height > 10) { // Only draw roof if building has some height
-        let roofHeight = building.width * 0.4; // Adjust multiplier for roof steepness
-        fill(building.color); // Match base color for now
-        noStroke();
+    // Draw roof if applicable - use fogged color
+    if (building.roofType === 'peaked' && building.height > 10) {
+        let roofHeight = building.width * 0.4;
+        fill(foggedColor); // Use fogged color for roof too
+        // noStroke(); // Already set
         triangle(
-            buildingX, buildingY,                         // Left base corner
-            buildingX + buildingW, buildingY,             // Right base corner
-            buildingX + buildingW / 2, buildingY - roofHeight // Peak
+            buildingX, buildingY,                         
+            buildingX + buildingW, buildingY,             
+            buildingX + buildingW / 2, buildingY - roofHeight 
         );
-        // Adjust buildingY for window placement to be below the roof base
-        buildingY += 0; // No change needed if windows start from original buildingY
     }
     
-    // Draw windows if building is tall enough
-    if (building.height > 20) {
-      // Window dimensions
-      let windowGridHeight = building.roofType === 'peaked' ? building.height : building.height; // Windows only on rectangular part for peaked roofs
+    // Draw windows if building is tall enough and close enough (less detail far away)
+    if (building.height > 20 && building.depth > 0.3) { // Only draw windows on closer buildings
+      let windowGridHeight = building.height; 
       let windowHeight = windowGridHeight / (building.windowRows + 1);
       let windowWidth = building.width / (building.windowCols + 1);
       
-      // Only draw windows up to the current height
-      let visibleRows = floor(building.height / windowHeight) -1 ; // Recalculate based on windowHeight
+      let visibleRows = floor(building.height / windowHeight) -1 ; 
 
       for (let row = 0; row < min(visibleRows, building.windowRows); row++) {
         for (let col = 0; col < building.windowCols; col++) {
-          // Window position
           let winX = buildingX + (col + 1) * windowWidth;
-          // Adjust Y start position based on roof type (windows start below peak base)
           let winY = (groundY - building.height) + (row + 1) * windowHeight;
 
-          // Update window lighting
-          updateWindowLighting(building.windows[row][col]);
+          // Update window lighting (less likely to be seen lit if far)
+          updateWindowLighting(building.windows[row][col], building.depth);
           
-          // Draw the window
+          // Draw the window - apply fog effect to window colors
           let windowColor;
+          let baseWindowLitColor, baseWindowUnlitColor;
+
+          if (timeOfDay > 0.4 && timeOfDay < 0.6) { // Daytime window colors
+             baseWindowLitColor = color(255, 255, 200, 100);
+          } else { // Nighttime window colors
+             baseWindowLitColor = color(255, 255, 150, 220);
+          }
+          baseWindowUnlitColor = color(20, 20, 30, 200);
+
           if (building.windows[row][col].isLit) {
-            // Lit window color varies with time of day
-            if (timeOfDay > 0.4 && timeOfDay < 0.6) {
-              // Daytime - not as bright
-              windowColor = color(255, 255, 200, 100);
-            } else {
-              // Night - brighter
-              windowColor = color(255, 255, 150, 220);
-            }
+             windowColor = lerpColor(baseWindowLitColor, skyColor, fogAmount * 0.8); // Windows slightly less affected by fog
           } else {
-            // Unlit window is dark
-            windowColor = color(20, 20, 30, 200);
+             windowColor = lerpColor(baseWindowUnlitColor, skyColor, fogAmount);
           }
           
           fill(windowColor);
+          // noStroke(); // Already set
           rect(winX - windowWidth/2, winY - windowHeight/2, 
                windowWidth * 0.8, windowHeight * 0.8);
         }
@@ -303,30 +308,38 @@ function drawBuildings() {
   }
 }
 
-function updateWindowLighting(windowObj) {
+function updateWindowLighting(windowObj, depth) { 
   // Windows have more chance to be lit at night
+  // And less chance to appear lit if farther away
   let litProbability;
+  let depthFactor = map(depth, 0.1, 1, 0.3, 1); // Farther buildings less likely to show lit windows
   
-  if (timeOfDay < 0.25 || timeOfDay > 0.75) {
-    // Night - higher chance of light
-    litProbability = 0.8;
-  } else if (timeOfDay < 0.3 || timeOfDay > 0.7) {
-    // Dawn/dusk - medium chance
-    litProbability = 0.5;
-  } else {
-    // Day - lower chance
-    litProbability = 0.2;
+  if (timeOfDay < 0.25 || timeOfDay > 0.75) { // Night
+    litProbability = 0.8 * depthFactor;
+  } else if (timeOfDay < 0.3 || timeOfDay > 0.7) { // Dawn/dusk
+    litProbability = 0.5 * depthFactor;
+  } else { // Day
+    litProbability = 0.2 * depthFactor;
   }
   
   // Occasionally update window lighting state
-  if (frameCount % 100 === 0 && random() < 0.1) {
+  // Use modulo based on frameCount to avoid sync flickering
+  if ((frameCount + floor(windowObj.flickerTime)) % 100 === 0 && random() < 0.1) { 
     windowObj.isLit = random() < litProbability;
   }
   
-  // Add occasional flicker
-  if (windowObj.isLit && frameCount % windowObj.flickerTime < 2) {
-    windowObj.isLit = false;
+  // Add occasional flicker (less apparent if far)
+  if (windowObj.isLit && random() < (0.005 * depthFactor) ) { // Flicker check less frequent/intense if far
+     if (frameCount % floor(windowObj.flickerTime / 2) < 2){ // Flicker duration shorter too
+       windowObj.isLit = false; // Flicker off
+     } else if (windowObj.isLit === false && random() < 0.5) {
+       // Chance to flicker back on quickly if it was just turned off by flicker
+       windowObj.isLit = true; 
+     }
   }
+
+  // Ensure flickerTime is not 0 to avoid issues with modulo
+  if (windowObj.flickerTime === 0) windowObj.flickerTime = 1; 
 }
 
 function manageRain() {
