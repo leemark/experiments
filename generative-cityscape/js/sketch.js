@@ -10,6 +10,8 @@ let lastBuildingTime = 0;
 let groundY;
 let raindrops = []; // Array to hold raindrop objects
 let maxRaindrops = 200; // Max number of raindrops on screen
+let starField = []; // Array to hold star objects for parallax
+let parallaxOffset = 0; // Horizontal offset for star parallax
 
 function setup() {
   // Create canvas and set it in the container
@@ -23,6 +25,18 @@ function setup() {
   // Initialize raindrops array
   raindrops = [];
 
+  // Initialize star field
+  starField = [];
+  let numStars = 200; // Number of stars in the field
+  for (let i = 0; i < numStars; i++) {
+      starField.push({
+          relX: random(), // Relative X position (0 to 1)
+          relY: random(), // Relative Y position (0 to 1)
+          size: random(0.5, 2.5),
+          depth: random(0.1, 0.6) // Depth factor for parallax speed (closer = higher)
+      });
+  }
+
   // Generate initial buildings
   for (let i = 0; i < 15; i++) {
     addBuilding(random(width), random(0.3, 1));
@@ -32,6 +46,9 @@ function setup() {
 function draw() {
   // Update time of day
   timeOfDay = (timeOfDay + timeSpeed) % 1;
+  
+  // Update parallax offset (slow horizontal scroll)
+  parallaxOffset += 0.1; // Adjust speed as needed
   
   // Update sky color based on time of day
   updateSkyColor();
@@ -106,23 +123,48 @@ function updateSkyColor() {
 }
 
 function drawStars() {
-  fill(255, 255, 255, 150);
+  fill(255, 255, 255, 180); // Slightly more opaque stars
   noStroke();
   
-  // Use noise to determine star visibility
-  for (let i = 0; i < 100; i++) {
-    let x = random(width);
-    let y = random(groundY);
-    let size = noise(x * 0.01, y * 0.01, frameCount * 0.01) * 3;
-    
-    if (size > 1) {
-      circle(x, y, size);
-    }
+  // Use a consistent noise seed offset based on time
+  let twinkleOffset = frameCount * 0.01;
+
+  // Draw stars from the pre-generated starField
+  for (let star of starField) {
+      // Calculate parallax effect
+      // Modulo width ensures stars wrap around horizontally
+      let screenX = (star.relX * width + parallaxOffset * star.depth) % width;
+      // Ensure positive screenX after modulo
+      if (screenX < 0) {
+          screenX += width;
+      }
+      
+      // Y position relative to the ground level
+      let screenY = star.relY * groundY; 
+
+      // Add twinkling effect using noise based on star's relative position and time
+      let twinkle = noise(star.relX * 10, star.relY * 10, twinkleOffset);
+      let currentSize = star.size * map(twinkle, 0.3, 0.7, 0.5, 1.5); // Modulate size
+
+      // Only draw if size is positive
+      if (currentSize > 0.5) { 
+        // Vary alpha slightly based on twinkle for brightness variation
+        let currentAlpha = map(twinkle, 0.3, 0.7, 100, 220);
+        fill(255, 255, 255, currentAlpha);
+        circle(screenX, screenY, currentSize);
+      }
   }
 }
 
 function drawCelestialBody() {
-  let celestialX = width * (timeOfDay % 1);
+  // Calculate base position based on time of day
+  // We can also apply a slight parallax to the sun/moon to make them feel distant
+  let celestialParallaxFactor = 0.05; // Very slow parallax for sun/moon
+  let baseCelestialX = width * (timeOfDay % 1);
+  let celestialX = (baseCelestialX + parallaxOffset * celestialParallaxFactor) % width;
+   if (celestialX < 0) {
+          celestialX += width;
+      }
   let celestialY = map(sin(PI * timeOfDay), -1, 1, groundY - 50, 50);
   
   // Determine if it's sun or moon
