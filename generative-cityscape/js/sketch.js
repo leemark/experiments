@@ -47,6 +47,9 @@ function draw() {
   // Draw sun or moon
   drawCelestialBody();
 
+  // Draw distant background hills
+  drawBackgroundHills();
+
   // Draw and manage rain
   manageRain();
   
@@ -313,4 +316,43 @@ function manageRain() {
           raindrops.splice(i, 1);
       }
   }
+}
+
+function drawBackgroundHills() {
+  let hillBaseY = groundY; // Hills start at the ground line
+  let hillMaxHeight = 150; // Max height variation of hills
+  let hillColor1 = lerpColor(skyColor, color(10, 20, 15), 0.7); // Darker, slightly green-tinted color, blended with sky
+  let hillColor2 = lerpColor(skyColor, color(20, 30, 25), 0.6); // Slightly lighter layer
+
+  noStroke();
+
+  // Draw farthest hill layer
+  fill(hillColor1);
+  beginShape();
+  vertex(0, height); // Bottom left corner
+  vertex(0, hillBaseY); // Top left corner at ground level
+  let noiseOffsetX1 = frameCount * 0.0005; // Slow horizontal scroll
+  for (let x = 0; x <= width; x += 10) {
+      let noiseVal = noise(x * 0.005 + noiseOffsetX1); // Adjust 0.005 for hill ruggedness
+      let hillY = hillBaseY - map(noiseVal, 0, 1, 0, hillMaxHeight * 0.6); // This layer is less tall
+      vertex(x, hillY);
+  }
+  vertex(width, hillBaseY); // Top right corner at ground level
+  vertex(width, height); // Bottom right corner
+  endShape(CLOSE);
+
+  // Draw closer hill layer
+  fill(hillColor2);
+  beginShape();
+  vertex(0, height); // Bottom left corner
+  vertex(0, hillBaseY); // Top left corner at ground level
+  let noiseOffsetX2 = frameCount * 0.0008; // Slightly faster scroll
+  for (let x = 0; x <= width; x += 10) {
+      let noiseVal = noise(x * 0.008 + 100 + noiseOffsetX2); // Different noise seed and frequency
+      let hillY = hillBaseY - map(noiseVal, 0, 1, 0, hillMaxHeight);
+      vertex(x, hillY);
+  }
+  vertex(width, hillBaseY); // Top right corner at ground level
+  vertex(width, height); // Bottom right corner
+  endShape(CLOSE);
 }
