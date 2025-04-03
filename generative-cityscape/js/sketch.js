@@ -8,6 +8,8 @@ let timeOfDay = 0; // 0 to 1, where 0 is midnight and 0.5 is noon
 let timeSpeed = 0.001; // Speed of time passing
 let lastBuildingTime = 0;
 let groundY;
+let raindrops = []; // Array to hold raindrop objects
+let maxRaindrops = 200; // Max number of raindrops on screen
 
 function setup() {
   // Create canvas and set it in the container
@@ -18,6 +20,9 @@ function setup() {
   groundY = height * 0.75;
   skyColor = color(0, 10, 40); // Night sky
   
+  // Initialize raindrops array
+  raindrops = [];
+
   // Generate initial buildings
   for (let i = 0; i < 15; i++) {
     addBuilding(random(width), random(0.3, 1));
@@ -41,6 +46,9 @@ function draw() {
   
   // Draw sun or moon
   drawCelestialBody();
+
+  // Draw and manage rain
+  manageRain();
   
   // Draw buildings
   drawBuildings();
@@ -273,5 +281,36 @@ function updateWindowLighting(windowObj) {
   // Add occasional flicker
   if (windowObj.isLit && frameCount % windowObj.flickerTime < 2) {
     windowObj.isLit = false;
+  }
+}
+
+function manageRain() {
+  // Spawn new raindrops randomly
+  if (raindrops.length < maxRaindrops && random() < 0.5) { // Adjust spawn rate with random() threshold
+      raindrops.push({
+          x: random(width),
+          y: 0,
+          len: random(5, 15),
+          speed: random(4, 10)
+      });
+  }
+
+  // Update and draw raindrops
+  stroke(150, 180, 200, 150); // Rain color
+  strokeWeight(1.5);
+  
+  for (let i = raindrops.length - 1; i >= 0; i--) {
+      let drop = raindrops[i];
+      
+      // Move the drop
+      drop.y += drop.speed;
+      
+      // Draw the drop
+      line(drop.x, drop.y, drop.x, drop.y + drop.len);
+      
+      // Remove drop if it hits the ground
+      if (drop.y > groundY) {
+          raindrops.splice(i, 1);
+      }
   }
 }
