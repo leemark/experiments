@@ -223,10 +223,12 @@ function drawTree(tree) {
 function drawOakTree(x, y, length, angle, depth, tree) {
   if (depth === 0) return;
   
-  // Calculate wind effect
+  // Calculate wind effect with reduced impact on lower branches
   let windEffect = sin(frameCount * 0.05 + x * 0.1) * windStrength * tree.windFactor;
   if (depth > 3) {
-    windEffect *= map(depth, 3, 5, 0, 1);
+    windEffect *= map(depth, 3, 5, 0.3, 1);
+  } else {
+    windEffect *= 0.3; // Lower branches resist wind more
   }
   
   // Calculate endpoints with wind
@@ -291,10 +293,12 @@ function drawOakTree(x, y, length, angle, depth, tree) {
 function drawPineTree(x, y, length, angle, depth, tree) {
   if (depth === 0) return;
   
-  // Calculate wind effect (less for pine trees)
-  let windEffect = sin(frameCount * 0.05 + x * 0.1) * windStrength * tree.windFactor * 0.5;
+  // Calculate wind effect (less for pine trees and more resistance in lower branches)
+  let windEffect = sin(frameCount * 0.05 + x * 0.1) * windStrength * tree.windFactor * 0.3;
   if (depth > 3) {
-    windEffect *= map(depth, 3, 5, 0, 1);
+    windEffect *= map(depth, 3, 5, 0.2, 0.8);
+  } else {
+    windEffect *= 0.2; // Pine trees are more rigid
   }
   
   // Calculate endpoints with wind
@@ -359,10 +363,12 @@ function drawPineTree(x, y, length, angle, depth, tree) {
 function drawWillowTree(x, y, length, angle, depth, tree) {
   if (depth === 0) return;
   
-  // Calculate wind effect (more for willow trees)
-  let windEffect = sin(frameCount * 0.05 + x * 0.1) * windStrength * tree.windFactor * 1.5;
+  // Calculate wind effect (more for willow trees but with natural resistance)
+  let windEffect = sin(frameCount * 0.05 + x * 0.1) * windStrength * tree.windFactor;
   if (depth > 2) {
-    windEffect *= map(depth, 2, 5, 0, 1);
+    windEffect *= map(depth, 2, 5, 0.5, 1.2);
+  } else {
+    windEffect *= 0.5; // Some resistance in main trunk
   }
   
   // Calculate endpoints with wind and drooping effect
@@ -426,10 +432,12 @@ function drawWillowTree(x, y, length, angle, depth, tree) {
 function drawMapleTree(x, y, length, angle, depth, tree) {
   if (depth === 0) return;
   
-  // Calculate wind effect
+  // Calculate wind effect with balanced resistance
   let windEffect = sin(frameCount * 0.05 + x * 0.1) * windStrength * tree.windFactor;
   if (depth > 3) {
-    windEffect *= map(depth, 3, 5, 0, 1);
+    windEffect *= map(depth, 3, 5, 0.4, 0.9);
+  } else {
+    windEffect *= 0.4; // More stable lower branches
   }
   
   // Calculate endpoints with wind
@@ -497,12 +505,12 @@ function drawMapleTree(x, y, length, angle, depth, tree) {
 }
 
 function updateWind() {
-  // Gradually change wind
-  windStrength = 0.05 + 0.05 * sin(frameCount * 0.01);
+  // Gradually change wind with reduced strength
+  windStrength = 0.02 + 0.02 * sin(frameCount * 0.01);
   
-  // Stronger wind in autumn
+  // Stronger wind in autumn but still moderate
   if (season === 2) {
-    windStrength *= 2;
+    windStrength *= 1.5;
   }
   
   // Wind direction shifts gradually
