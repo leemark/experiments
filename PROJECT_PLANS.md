@@ -10,10 +10,10 @@ This document outlines step-by-step plans for implementing each of the ten creat
 | 2. Interactive Kaleidoscope | ✅ Completed | 100% |
 | 3. Sound-Responsive Visualizer | 🔜 Coming Soon | 0% |
 | 4. Fractal Forest | ✅ Completed | 100% |
-| 5. Particle Swarm Art | 🔜 Coming Soon | 0% |
+| 5. Particle Swarm Art | 🚧 In Progress | 15% |
 | 6. Digital Watercolor Painting | 🔜 Coming Soon | 0% |
 | 7. 3D Geometric Sculpture | 🔜 Coming Soon | 0% |
-| 8. Algorithmic Portraits | 🔜 Coming Soon | 0% |
+| 8. Algorithmic Portraits | 🚧 In Progress | 15% |
 | 9. Virtual Garden | 🔜 Coming Soon | 0% |
 | 10. Stellar Constellations | 🔜 Coming Soon | 0% |
 

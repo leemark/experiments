@@ -8,6 +8,7 @@ Explore the world of creative coding with these 10 artistic projects using p5.js
 |--------|-------------|
 | ✅ | Completed |
 | 🔜 | Coming Soon |
+| 🚧 | In Progress |
 
 ## 1. Generative Cityscape ✅
 - **Description**: Create a dynamic cityscape that evolves over time. Buildings grow and shrink, lights turn on and off, and the skyline changes with the time of day.
@@ -30,7 +31,7 @@ Explore the world of creative coding with these 10 artistic projects using p5.js
 ## 7. 3D Geometric Sculpture 🔜
 - **Description**: Construct a 3D sculpture using geometric shapes. The sculpture rotates and changes shape based on user input, creating a dynamic piece of art.
 
-## 8. Algorithmic Portraits 🔜
+## 8. Algorithmic Portraits 🚧
 - **Description**: Generate portraits using algorithms. Each portrait is unique, created from a set of rules that define facial features and expressions.
 
 ## 9. Virtual Garden 🔜
