@@ -28,6 +28,8 @@ function generateNewPortrait() {
 }
 
 function drawPortrait() {
+  push(); // Save the current drawing state and coordinate system
+  
   // Center the portrait roughly
   translate(width / 2, height / 2);
   
@@ -73,6 +75,8 @@ function drawPortrait() {
   triangle(0, noseY - noseHeight/2, -noseWidth/2, noseY + noseHeight/2, noseWidth/2, noseY + noseHeight/2);
 
   console.log(`Generated portrait with seed: ${portraitSeed}`);
+  
+  pop(); // Restore the previous drawing state and coordinate system
 }
 
 // Adjust canvas if window is resized (optional, but good practice)
