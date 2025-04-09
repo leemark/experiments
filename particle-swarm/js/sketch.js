@@ -71,16 +71,17 @@ function draw() {
 
     for (let particle of particles) {
         particle.follow(flowField); // Apply flow field force
+        particle.interactWithMouse(); // Add mouse interaction
         particle.update();
         particle.edges();
         particle.show();
     }
 }
 
-// Add mousePressed function to toggle debug view
-function mousePressed() {
-    debug = !debug;
-}
+// Remove mousePressed function for toggling debug, handle interaction in Particle class
+// function mousePressed() {
+//     debug = !debug;
+// }
 
 
 class Particle {
@@ -102,6 +103,21 @@ class Particle {
 
     applyForce(force) {
         this.acc.add(force);
+    }
+
+    // Add method for mouse interaction
+    interactWithMouse() {
+        if (mouseIsPressed) {
+            let mousePos = createVector(mouseX, mouseY);
+            let dir = p5.Vector.sub(this.pos, mousePos);
+            let d = dir.mag();
+            if (d < 50) { // Only interact if close enough
+                // Repulsion force increases closer to the mouse
+                let forceMagnitude = map(d, 0, 50, 1.5, 0); // Stronger force when closer
+                dir.setMag(forceMagnitude);
+                this.applyForce(dir);
+            }
+        }
     }
 
     // New method to follow the flow field
